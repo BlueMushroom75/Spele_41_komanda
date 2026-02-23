@@ -57,6 +57,46 @@ let highlightedPoint = undefined
 let fromDrawPoint = undefined
 let mousePos = {x: 0, y:0}
 
+class Node {
+  constructor(playerPoints, pcPoints, usedLines, newLine, isPcTurn) {
+    this.playerPoints = playerPoints;
+    this.pcPoints = pcPoints;
+    this.usedLines = usedLines;
+    this.newLine = newLine;
+    this.isPcTurn = isPcTurn;
+    this.children = [];
+  }
+    setPlayerPoints(newPoints){
+        this.playerPoints = newPoints;
+    }
+    setPcPoints(newPoints){
+        this.pcPoints = newPoints;
+    }
+    setUsedLines(newLines){
+        this.usedLines = newLines;
+    }
+    addLine(newLine){
+        this.usedLines.push(newLine);
+    }
+    replaceNode(newNode){
+        this.playerPoints = newNode.playerPoints;
+        this.pcPoints = newNode.pcPoints;
+        this.usedLines = newNode.usedLines;
+        this.newLine = newNode.newLine;
+        this.isPcTurn = newNode.isPcTurn;
+        this.children = newNode.children;
+    }
+    clear(){
+        this.playerPoints = null;
+        this.pcPoints = null;
+        this.usedLines = null;
+        this.newLine = null;
+        this.isPcTurn = null;
+        this.children = null;
+    }
+}
+let rootNode = new Node(playerPoints, pcPoints, lines, [], true)
+
 document.addEventListener("mousemove", (e)=>{
     const rect = canvas.getBoundingClientRect();
     mousePos = {x: e.clientX - rect.left, y:e.clientY - rect.top}
@@ -159,66 +199,77 @@ function addFunctionalLine(from, to){
     idCounter++
 }
 
-function calculateGameTree(){
-    switch(selectedAlg){
-        case "minmax": 
-            return minmax(0, maximumDepth, lines, playerPoints, pcPoints, true)[2]
+function createGameTree(node, curDepth){
+    if (curDepth == maximumDepth) return
 
-        case "alpha-beta": 
-            return alphabeta(0, maximumDepth, lines, playerPoints, pcPoints, true)
-    }
-}
-
-function minmax(curDepth, maxDepth, usedLines, playerPoints, pcPoints, pcTurn){
-    if (curDepth == maxDepth) return [playerPoints, pcPoints, []]
-
-    let bestPointDiff = -10000
-    let bestLine = [];
-    let newPcPoints
-    let newPlayerPoints
-
-
-    for(let i=0; i<pointCount; i++){
-        for(let j=i+1; j<pointCount; j++){
-            let validLine = true
-            for(k=0; k<usedLines.length; k++){
-                if(
-                    i==usedLines[k][0] && j==usedLines[k][1] ||
-                    i==usedLines[k][1] && j==usedLines[k][0]
-                ){
-                    validLine = false
-                    break
+    if(node.children.length == 0){
+        for(let i=0; i<pointCount; i++){
+            for(let j=i+1; j<pointCount; j++){
+                let validLine = true
+                for(k=0; k<node.usedLines.length; k++){
+                    if(
+                        i==node.usedLines[k][0] && j==node.usedLines[k][1] ||
+                        i==node.usedLines[k][1] && j==node.usedLines[k][0]
+                    ){
+                        validLine = false
+                        break
+                    }
                 }
-            }
-            if(validLine){
-                let minmaxLines = []
-                minmaxLines = usedLines.slice()
-                minmaxLines.push([i,j,0])
-                if(pcTurn){
-                    newPcPoints = pcPoints + countIntersections(i, j, minmaxLines)
-                    newPlayerPoints = playerPoints
-                }else{
-                    newPlayerPoints = playerPoints + countIntersections(i, j, minmaxLines)
-                    newPcPoints = pcPoints
-                }
-
-                let [PP, PCP] = minmax(curDepth+1, maxDepth, minmaxLines, newPlayerPoints, newPcPoints, !pcTurn)
-                //console.log(i,j,PP-PCP)
-                if(pcTurn && PP-PCP > bestPointDiff){
-                    bestPointDiff = PP-PCP
-                    bestLine = [i, j]
-                }else if(!pcTurn && PCP-PP > bestPointDiff){
-                    bestPointDiff = PCP-PP
-                    bestLine = [i, j]
+                if(validLine){
+                    let newNode = new Node(0, 0, [], [i,j], !node.isPcTurn)
+                    newNode.setUsedLines(node.usedLines.slice())
+                    newNode.addLine([i,j,0])
+                    if(node.isPcTurn){
+                        newNode.setPcPoints(node.pcPoints + countIntersections(i, j, newNode.usedLines))
+                        newNode.setPlayerPoints(node.playerPoints)
+                    }else{
+                        newNode.setPlayerPoints(node.playerPoints + countIntersections(i, j, newNode.usedLines))
+                        newNode.setPcPoints(node.pcPoints)
+                    }
+                    node.children.push(newNode)
+                    createGameTree(newNode, curDepth+1)
                 }
             }
         }
+    }else{
+        for(let child of node.children){
+            createGameTree(child, curDepth+1)
+        }
     }
-    return [playerPoints, pcPoints, bestLine]
+    
+}
+
+function calculateGameTree(){
+    switch(selectedAlg){
+        case "minmax": 
+            createGameTree(rootNode, 0)
+            //console.log(rootNode)
+            return minmax(rootNode, 0)[0]
+
+        case "alpha-beta": 
+            createGameTree(rootNode, 0)
+            return alphabeta() // TODO
+    }
+}
+
+function minmax(node, curDepth){
+    if (curDepth == maximumDepth) return [node.newLine, node.playerPoints-node.pcPoints]
+
+    let bestPointDiff = -10000
+    let bestLine = []
+    for(let child of node.children){
+        let[l, pointDiff] = minmax(child, curDepth+1)
+        if(pointDiff > bestPointDiff){
+            bestPointDiff = pointDiff
+            bestLine = [child.newLine[0], child.newLine[1]]
+        }
+
+    }
+    return [bestLine, bestPointDiff]
 }
 
 function alphabeta(){
-
+    //TODO
 }
 
 
@@ -232,10 +283,6 @@ function countIntersections(from, to, usedLines){
     }
     for (let i = 0; i < usedLines.length; i++) {
         const line = usedLines[i];
-        // if(!friendlyLine(line2id(line)) && (
-        //     (isInside(line[0], from, to) && !isInside(line[1], from, to)) ||
-        //     (isInside(line[1], from, to) && !isInside(line[0], from, to))
-        // )
         if(
             (from != line[0] && from != line[1] && to != line[0] && to != line[1]) && (
             (isInside(line[0], from, to) && !isInside(line[1], from, to)) ||
@@ -265,10 +312,6 @@ function calculateIntersections(from, to){
     }
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        // if(!friendlyLine(line2id(line)) && (
-        //     (isInside(line[0], from, to) && !isInside(line[1], from, to)) ||
-        //     (isInside(line[1], from, to) && !isInside(line[0], from, to))
-        // )
         if(
             (from != line[0] && from != line[1] && to != line[0] && to != line[1]) && (
             (isInside(line[0], from, to) && !isInside(line[1], from, to)) ||
@@ -366,6 +409,8 @@ function initGame(){
             chooseNextTurn()
             break
     }
+
+    createGameTree(rootNode, 0)
 }
 
 function drawPoint(pos_x, pos_y, color){
@@ -464,37 +509,7 @@ function showResults(){
 }
 
 function chooseNextTurn(){
-    // TODO
-
-    let chosenPoints = calculateGameTree() // TODO
-    // let start = undefined
-    // // while(true){
-    // //     start = Math.floor(Math.random()*pointCount)
-    // //     if(!filledPoints[start]) break
-    // // }
-    // start = Math.floor(Math.random()*pointCount)
-
-    // let end = undefined
-    // let validLine = false
-    // while(!validLine){
-    //     end = Math.floor(Math.random()*pointCount)
-    //     //if(!filledPoints[end] && end != start) break
-    //     let invalidLines = 0
-    //     if(start == end){
-    //         invalidLines++
-    //     }else{
-    //         for(i=0; i<lines.length; i++){
-    //             if(
-    //                 start==lines[i][0] && end==lines[i][1] ||
-    //                 start==lines[i][1] && end==lines[i][0]
-    //             ){
-    //                 invalidLines++
-    //                 break
-    //             }
-    //         }
-    //     }
-    //     if(invalidLines==0) validLine = true
-    // }
+    let chosenPoints = calculateGameTree()
     console.log(`Choosing ${chosenPoints[0]} ${chosenPoints[1]}`)
     makeAMove(chosenPoints[0], chosenPoints[1])
 
@@ -509,9 +524,17 @@ function makeAMove(from, to){
             return
         }
     }
-    //if(filledPoints[from] || filledPoints[to]) return
     let intersects = calculateIntersections(from, to).length
     addFunctionalLine(from, to)
+    for(let child of rootNode.children){
+        if(child.newLine == [from, to] || child.newLine == [to, from]){
+            let oldRoot = rootNode
+            rootNode.replaceNode(child)
+            rootNode.setUsedLines(lines)
+            oldRoot.clear()
+            oldRoot = null
+        }
+    }
     if(isPlayerTurn) playerPoints += intersects
     else pcPoints += intersects 
 
