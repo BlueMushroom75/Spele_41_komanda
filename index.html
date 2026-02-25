@@ -1,12 +1,84 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <style>
-            
-        </style>
-    </head>
-    <body>
-        <div>
+
+<head>
+    <style>
+        #menu-container {
+            z-index: 100;
+            height: 100vh;
+            width: 100vw;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(6px);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            height: 300px;
+            width: 360px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        #menu select {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            padding: 5px;
+        }
+
+        #menu div {
+            margin-bottom: 10px;
+        }
+
+        #game {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #start-button {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            padding: 5px;
+            margin-top: 10px;
+            background-color: #383;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="menu-container">
+        <div id="menu">
+            <div>
+                <label for="playersSelect">Spēlētāji:</label>
+                <select name="playersSelect" id="select-players">
+                    <option value="humanvhuman">Cilvēks pret Cilvēks</option>
+                    <option value="humanvpc">Cilvēks pret Dators</option>
+                    <option value="pcvpc">Dators pret Dators</option>
+                </select>
+            </div>
+            <div id="startingPlayerContainer" style="display: none;">
+                <label for="startingPlayer">Spēli sāk:</label>
+                <select name="startingPlayer" id="select-startingPlayer">
+                    <option value="human">cilvēks</option>
+                    <option value="pc">dators</option>
+                </select>
+            </div>
             <div>
                 <label for="contour">Kontūra:</label>
                 <select name="contour" id="select-contour">
@@ -14,9 +86,10 @@
                     <option value="square">Kvadrāts</option>
                     <option value="triangle">Trīsstūris</option>
                 </select>
+            </div>
+            <div>
                 <label for="numP">Savienojamo Punktu skaits:</label>
-                    <input name="numP" type="range" min="15" max="25" value="15" class="slider" id="select-points">
-                </select>
+                <input name="numP" type="range" min="15" max="25" value="15" class="slider" id="select-points">
             </div>
             <div>
                 <label for="algorithm">Algoritms:</label>
@@ -25,23 +98,28 @@
                     <option value="alpha-beta">Alfa-beta</option>
                 </select>
             </div>
-            <div>
-                <label for="searchDepth">Meklēšanas dziļums:</label>
-                <input type="number" id="maxDepthInput" min="1" max="10"/>
-            </div>
-            <div>
-                <label for="startingPlayer">Spēli sāk:</label>
-                <select name="startingPlayer" id="select-startingPlayer">
-                    <option value="human">cilvēks</option>
-                    <option value="pc">dators</option>
+            <div id="algorithm2Container" style="display: none;">
+                <label for="algorithm2">Algoritms #2:</label>
+                <select name="algorithm2" id="select-algorithm2">
+                    <option value="minmax">Minmaks</option>
+                    <option value="alpha-beta">Alfa-beta</option>
                 </select>
             </div>
             <div>
-                <p>1. Soda punkti: <span id="player_points">0</span></p>
-                <p>2. Soda punkti: <span id="pc_points">0</span></p>
-                <p style="margin-top: 10px;">Pāries pāri: <span id="about_to_intersect">0</span></p>
+                <label for="searchDepth">Meklēšanas dziļums:</label>
+                <input type="number" id="maxDepthInput" min="1" max="10" />
             </div>
-            
+            <div>
+                <button type="button" id="start-button">Sākt spēli</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game">
+        <div>
+            <p>1. Soda punkti: <span id="player_points">0</span></p>
+            <p>2. Soda punkti: <span id="pc_points">0</span></p>
+            <p style="margin-top: 10px;">Pāries pāri: <span id="about_to_intersect">0</span></p>
         </div>
         <div>
             <canvas id="drawBoard" height="720px" width="1280px"></canvas>
@@ -49,7 +127,9 @@
         <div>
             <button type="button" id="reset-button">RESET</button>
         </div>
+    </div>
 
-        <script src="main.js"></script>
-    </body>
+    <script src="main.js"></script>
+</body>
+
 </html>
