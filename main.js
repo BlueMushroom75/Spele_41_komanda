@@ -2,7 +2,7 @@ const canvas = document.getElementById("drawBoard");
 const ctx = canvas.getContext("2d");
 
 const shapeDropdown = document.getElementById("select-contour");
-const pointSlider = document.getElementById("select-points");
+const pointVal = document.getElementById("select-points");
 const algorithmDropdown = document.getElementById("select-algorithm");
 const startPlayerDropdown = document.getElementById("select-startingPlayer");
 
@@ -27,7 +27,7 @@ let mouseMargin = 20;
 
 let idCounter = 1;
 
-let pointCount = pointSlider.value; // Nomaina ar UI
+let pointCount = pointVal.value; // Nomaina ar UI
 
 
 const arena_x = 400;
@@ -104,17 +104,26 @@ document.addEventListener("mouseup", (e)=>{
 
 let graph = {}
 
-
-
-
-
 shapeDropdown.addEventListener("input", (e) => {
     selectedShape = e.target.value
     console.log(selectedShape)
     initGame()
 })
-pointSlider.addEventListener("input", (e) => {
-    pointCount = Number(e.target.value)
+pointVal.addEventListener("input", (e) => {
+    let val = Number(e.target.value);
+    if (val > 25) {
+        val = 25;
+    }
+    if (val < 15) {
+        val = 15;
+    }
+    if (isNaN(val)) {
+        val = 15;
+    }
+    if (val % 1 !== 0) {
+        val = Math.round(val);
+    }
+    pointCount = val;
     console.log(pointCount)
     initGame()
 })
@@ -129,7 +138,20 @@ startPlayerDropdown.addEventListener("input", (e) => {
     initGame()
 })
 serchDepthInput.addEventListener("input", (e) => {
-    maximumDepth = e.target.value
+    let val = Number(e.target.value);
+    if (val > 25) {
+        val = 25;
+    }
+    if (val < 15) {
+        val = 15;
+    }
+    if (isNaN(val)) {
+        val = 15;
+    }
+    if (val % 1 !== 0) {
+        val = Math.round(val);
+    }
+    maximumDepth = val
     console.log(maximumDepth)
     initGame()
 })
@@ -554,8 +576,21 @@ function hasValidMoves(){
 
 function showResults(){
     console.log(`P1 points: ${playerPoints}; P2 points: ${pcPoints}`)
-    // TODO
-    //initGame()
+    const winnerMessage = document.getElementById("winner-message");
+    const endGameScreen = document.getElementById("game-over");
+    endGameScreen.style.display = "block";
+    winnerMessage.textContent = ""
+    game.style.display = "none";
+    if(playerPoints < pcPoints){
+        winnerMessage.textContent = "Tu uzvarēji!"
+    }
+    else if(playerPoints > pcPoints){
+        winnerMessage.textContent = "Dators uzvarēja!"
+    }
+    else{
+        winnerMessage.textContent = "Neizšķirts!"
+    }
+    winnerMessage.style.display = "block";
 }
 
 function chooseNextTurn(){

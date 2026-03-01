@@ -2,54 +2,192 @@
 <html>
     <head>
         <style>
-            
+            background {
+                background-color: #f0f0f0;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                width: 100vw;
+            }
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                width: 100vw;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                background-color: #f0f0f0;
+            }
+            h1 {
+                text-align: center;
+                font-size: 36px;
+                margin-bottom: 20px;
+                color: #333;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                margin-top: 20px;
+            }
+            button:hover {
+                background-color: #45a049;
+            }
+            #start-menu {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+            }
+            #start-button {
+                padding: 10px 20px;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                margin-top: 20px;
+            }
+            #start-button:hover {
+                background-color: #45a049;
+            }
+            #select-contour, #select-points, #select-algorithm, #maxDepthInput, #select-startingPlayer {
+                margin: 10px;
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+                width: 200px;
+            }
+            #game {
+                display: none;
+                padding: 20px;
+                font-size: 24px;
+            }
+            #game-board {
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                background-color: white;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            #options {
+                background-color: #333;
+                color: white;
+                padding: 20px;
+                border-radius: 8px
+
+            }
+            #options-button {
+                padding: 10px 20px;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                margin-top: 20px;
+            }
+            #options-button:hover {
+                background-color: #45a049;
+            }
+            #options-button:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
         </style>
     </head>
     <body>
-        <div>
-            <div>
-                <label for="contour">Kontūra:</label>
-                <select name="contour" id="select-contour">
-                    <option value="circle">Aplis</option>
-                    <option value="square">Kvadrāts</option>
-                    <option value="triangle">Trīsstūris</option>
-                </select>
-                <label for="numP">Savienojamo Punktu skaits:</label>
-                    <input name="numP" type="range" min="15" max="25" value="15" class="slider" id="select-points">
-                </select>
+        <div id="start-menu">
+            <h1>Komandas 41 Spēle</h1>
+            <button onclick="startGame()" type="button" id="start-button">START</button>
+            <button type="button" id="options-button">OPTIONS</button>
+            <div id="options" style="display: none; margin-top: 20px;">
+                <div>
+                    <label for="contour">Kontūra:</label>
+                    <select name="contour" id="select-contour">
+                        <option value="circle">Aplis</option>
+                        <option value="square">Kvadrāts</option>
+                        <option value="triangle">Trīsstūris</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="numP">Savienojamo Punktu skaits:</label>
+                        <input type="number" id="select-points" min="15" value="15" max="25"/>
+                    </select>
+                </div>
+                <div>
+                    <label for="algorithm">Algoritms:</label>
+                    <select name="algorithm" id="select-algorithm">
+                        <option value="minmax">Minmaks</option>
+                        <option value="alpha-beta">Alfa-beta</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="searchDepth">Meklēšanas dziļums:</label>
+                    <input type="number" id="maxDepthInput" min="1" value="2" max="10"/>
+                </div>
+                <div>
+                    <label for="startingPlayer">Spēli sāk:</label>
+                    <select name="startingPlayer" id="select-startingPlayer">
+                        <option value="human">cilvēks</option>
+                        <option value="pc">dators</option>
+                    </select>
+                </div>
+                
             </div>
-            <div>
-                <label for="algorithm">Algoritms:</label>
-                <select name="algorithm" id="select-algorithm">
-                    <option value="minmax">Minmaks</option>
-                    <option value="alpha-beta">Alfa-beta</option>
-                </select>
-            </div>
-            <div>
-                <label for="searchDepth">Meklēšanas dziļums:</label>
-                <input type="number" id="maxDepthInput" min="1" value="2" max="10"/>
-            </div>
-            <div>
-                <label for="startingPlayer">Spēli sāk:</label>
-                <select name="startingPlayer" id="select-startingPlayer">
-                    <option value="human">cilvēks</option>
-                    <option value="pc">dators</option>
-                </select>
-            </div>
-            <div>
-                <p>1. Soda punkti: <span id="player_points">0</span></p>
-                <p>2. Soda punkti: <span id="pc_points">0</span></p>
-                <p style="margin-top: 10px;">Pāries pāri: <span id="about_to_intersect">0</span></p>
-            </div>
-            
         </div>
-        <div>
-            <canvas id="drawBoard" height="720px" width="1280px"></canvas>
-        </div>
-        <div>
-            <button type="button" id="reset-button">RESET</button>
-        </div>
+        <div id="game">
+            <h1>Gaming</h1>
+            <div>
+                    <p>1. Soda punkti: <span id="player_points">0</span></p>
+                    <p>2. Soda punkti: <span id="pc_points">0</span></p>
+                    <p style="margin-top: 10px;">Pāries pāri: <span id="about_to_intersect">0</span></p>
+                </div>
+            <div id="game-board">
+                <canvas id="drawBoard" height="720px" width="1280px"></canvas>
+            </div>
+            <div>
+                <button onclick="goToStartMenu()" type="button" id="main-menu-button">Main Menu</button>
+                <button type="button" id="reset-button">RESET</button>
+            </div>
 
-        <script src="main.js"></script>
+            <script src="main.js"></script>
+        </div>
+        <div id="game-over" style="display: none;">
+            <h2>Spēle beigusies!</h2>
+            <p id="winner-message"></p>
+            <button onclick="goToStartMenu()" type="button" id="main-menu-button">Main Menu</button>
+        </div>
+        <script>
+            function startGame() {
+                document.getElementById("start-menu").style.display = "none";
+                document.getElementById("game").style.display = "block";
+            }
+            function goToStartMenu() {
+                document.getElementById("game").style.display = "none";
+                document.getElementById("game-over").style.display = "none";
+                document.getElementById("start-menu").style.display = "flex";
+            }
+            function toggleOptions() {
+                const options = document.getElementById("options");
+                options.style.display = options.style.display === "none" ? "block" : "none";
+            }
+            document.getElementById("options-button").addEventListener("click", toggleOptions);
+        </script>
     </body>
 </html>
