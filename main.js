@@ -336,14 +336,187 @@ function calculateGameTree(){
             return id2point(move)
 
         case "alpha-beta": 
-            createGameTree(rootNode, 0)
-            return alphabeta() // TODO
+            let move2 = GameTreeAlphaBeta(getGamestate())
+            return id2point(move2)
     }
-}
+    }
 
-function alphabeta(){
-    //TODO
-}
+function  GameTreeAlphaBeta(gamestate){
+    let total_lines = Math.floor((pointCount*(pointCount-1))/2);
+    const full_mask = (1n << BigInt(total_lines)) - 1n;
+    const table = new Array(total_lines).fill(0n);
+    
+    const pow2 = [];
+    for (let i = 0; i < total_lines; i++) {
+        pow2[i] = 1n << BigInt(i);
+    }
+
+    function buildColMask(){
+        for (let s1 = 0; s1 < pointCount; s1++) {
+            for (let e1 = s1+1; e1 < pointCount; e1++) {
+                const l1 = point2id(s1,e1)
+                for (let s2 = 0; s2 < pointCount; s2++) {
+                    for (let e2 = s2+1; e2 < pointCount; e2++) {
+                        if(s1 === s2 || s1 === e2 || e1 === s2 || e1 === e2) continue
+                        const l2 = point2id(s2,e2)
+
+                        const collision = isInside(s2, s1, e1) ^ isInside(e2, s1, e1)
+                        if(collision){
+                            table[l1] |= pow2[l2]
+                            table[l2] |= pow2[l1]
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    buildColMask()
+
+    const memory = new Map()
+
+    function hashBigInt(mask) {
+        const mask32 = (1n << 32n) - 1n;
+        const mult = 0x5bd1e995n;
+        let hash = 0x9747b28cn;
+        let tmp = mask;
+        while (tmp > 0n) {
+            const chunk = tmp & mask32;
+            hash ^= chunk;
+            hash = (hash * mult) & 0xFFFFFFFFn;
+            tmp >>= 32n;
+        }
+        return Number(hash & 0xFFFFFFFFFFFFn);
+    }
+
+    function getCacheKey(mask, max_player, depth) {
+        //return hashBigInt((mask<<10n) | (max_player?(1n<<9n):0n) | BigInt(last_move_id))
+       // return hashBigInt((mask<<12n) | (max_player?(1n<<11n):0n) | (BigInt(depth & 0x3FF) << 1n) | BigInt(last_move_id + 1));
+      return `${mask.toString(16)}|${max_player ? 1 : 0}|${depth}`;
+    }
+
+    // function getCacheKey(mask, last_move_id, max_player) {
+    //     return (mask<<10n) | (max_player?(1n<<9n):0n) | BigInt(last_move_id)
+    // }
+
+
+    let total_calls = 0
+    let total_colls = 0
+    const maybe_faster = { move: -1, score: -1 }
+
+
+
+    function alphabeta(mask, last_move_id, acc_score, depth, max_player, alpha, beta){
+     
+        total_calls++
+        let cKey = -1
+        let best_score = max_player?-Infinity:Infinity
+        let best_move = undefined
+        let collision_score = 0
+        let last_move_mask = mask
+        
+        
+
+        if(last_move_id >= 0){
+            last_move_mask |= pow2[last_move_id]
+            collision_score = ((table[last_move_id] & mask) !== 0n) ? -1*(depth+1) : 0
+        }
+        const nMask = mask | last_move_mask
+
+        if(depth>1){
+            cKey = getCacheKey(nMask, max_player, depth)
+            if(memory.has(cKey)){
+                [best_move, best_score] = memory.get(cKey)
+                maybe_faster.move = best_move
+                maybe_faster.score = best_score
+                total_colls++
+                return
+            }
+        }
+    
+
+        // console.log(last_move_id, last_move_mask, mask, full_mask, nMask)
+        if(depth === 0 || nMask === full_mask) {
+            maybe_faster.score = acc_score + collision_score
+            maybe_faster.move = last_move_id
+            return
+            
+        } 
+        if (max_player){
+            maybe_faster.score= -Infinity
+            for (let i = 0; i < total_lines; i++) {
+                if((nMask & pow2[i]) === 0n){
+                    alphabeta(nMask, i, acc_score + collision_score, depth-1, false, alpha, beta)
+                    const score = maybe_faster.score
+                    if(score > best_score){
+                        best_score = score
+                        best_move = i
+                    }
+                    alpha = Math.max(alpha, best_score)
+                    if(beta <= alpha) 
+                    break
+                }
+                }
+                        }
+                    else {
+                        for (let i = 0; i < total_lines; i++) {
+                            if((nMask & pow2[i]) === 0n){
+                                alphabeta(nMask, i, acc_score + collision_score, depth-1, true, alpha, beta)   
+                                const score = maybe_faster.score
+                                if(score < best_score){
+                                    best_score = score
+                                    best_move= i
+                                }
+                                beta = Math.min(beta, best_score)
+                                if(beta <= alpha) 
+                                    break
+                    }}
+                }
+        maybe_faster.move = best_move
+        maybe_faster.score = best_score
+        if(depth>1){
+            memory.set(cKey, [best_move, best_score])
+        }
+        return
+            }
+    const start = Date.now()
+    alphabeta(gamestate, -1, 0, Number(maximumDepth), true, -Infinity, Infinity)
+    const end = Date.now()
+    console.log(`Time taken: ${end - start} ms`)
+    console.log("Total calls: ", total_calls)
+    console.log("Total collisions: ", total_colls)
+    console.log("Choosing ", maybe_faster.move, " with expected value ", maybe_faster.score)
+    console.log("Immediate: ", (table[maybe_faster.move] & gamestate) !== 0n ? "collision" : "safe")
+    return maybe_faster.move
+            }
+        
+/*
+        let empty = (~mask) & full_mask
+        let move = 0
+
+        while (empty) {
+            if (empty & 1n){
+                alphabeta(nMask, move, acc_score + collision_score, depth-1, !max_player, alpha, beta)
+                const score = maybe_faster.score
+                if(max_player){
+                    if(score > best_score){
+                        best_score = score
+                        best_move = maybe_faster.move
+                    }
+                }
+                else {
+                    if(score < best_score){
+                        best_score = score
+                        best_move = maybe_faster.move
+                    }
+                }
+            }
+            empty >>= 1n
+            move++
+        }*/
+       
+    
+    
 
 function isInside(point, start, end){
     if(start > end)
@@ -604,4 +777,4 @@ function onNextTurn(){
 
 
 drawLoop() // Init draw
-initGame() // TODO: sakuma izveles ekrans
+initGame() 
