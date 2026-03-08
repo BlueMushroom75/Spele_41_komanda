@@ -3,14 +3,16 @@ const ctx = canvas.getContext("2d");
 
 const shapeDropdown = document.getElementById("select-contour");
 const pointSlider = document.getElementById("select-points");
-const algorithmDropdown = document.getElementById("select-algorithm");
 
-const uiPlayerPoints = document.getElementById("current_player");
-const uiCurrentPlayer = document.getElementById("score-display");
+const uiPlayerPoints = document.getElementById("score-display");
+const uiCurrentPlayer = document.getElementById("current_player");
 const uiIntersectPreview = document.getElementById("about_to_intersect");
 
 const serchDepthInput = document.getElementById("maxDepthInput")
 const resetButton = document.getElementById("reset-button");
+
+const selectPlayer1 = document.getElementById("player-1-select")
+const selectPlayer2 = document.getElementById("player-2-select")
 
 const COLOR_POINT = "#000000"
 const COLOR_LINE = "#000000"
@@ -40,7 +42,6 @@ const centerY = canvasH/2
 
 
 let selectedShape = shapeDropdown.value // Nomaina ar UI
-let selectedAlg = algorithmDropdown.value // Nomaina ar UI
 let maximumDepth = serchDepthInput.value // Nomaina ar UI
 
 
@@ -119,16 +120,21 @@ pointSlider.addEventListener("input", (e) => {
     console.log(pointCount)
     initGame()
 })
-algorithmDropdown.addEventListener("input", (e) => {
-    selectedAlg = e.target.value
-    console.log(selectedAlg)
-    initGame()
-})
 serchDepthInput.addEventListener("input", (e) => {
     maximumDepth = e.target.value
     console.log(maximumDepth)
     initGame()
 })
+
+selectPlayer1.addEventListener("input", (e) => {
+    players[0] = e.target.value
+    initGame()
+})
+selectPlayer2.addEventListener("input", (e) => {
+    players[1] = e.target.value
+    initGame()
+})
+
 
 resetButton.addEventListener("click", (e) => {
     initGame()
@@ -139,13 +145,13 @@ function line2id(line){
 }
 
 function updScore(){
-    let msg = ""
+    let msg = "Spēlētāju punkti: \n"
     for (let i = 0; i < playerCount; i++) {
-        msg += `${players[i]}: ${playerScore[i]}\n`
+        msg += `${i+1}. ${players[i]}: ${playerScore[i]}\n`
         
     }
     uiPlayerPoints.textContent = msg
-    uiCurrentPlayer.textContent = `Pašreiz iet: ${currentPlayer+1}. ${players[currentPlayer]}`
+    uiCurrentPlayer.textContent = `${currentPlayer+1}. ${players[currentPlayer]}`
 }
 
 function updIntersectCount(count){
@@ -168,11 +174,13 @@ function point2id(start, end) {
 }
 
 
-function id2point(id){
+function id2point(bitmask){
+
+    let id = bitmask.toString(2).length - 1
     // TODO
     for (let i = 0; i < pointCount; i++) {
         for (let j = i+1; j < pointCount; j++) {
-            if(id === point2id(i,j)) return [i,j]
+            if(id == point2id(i,j)) return [i,j]
         }
         
     }
@@ -186,12 +194,16 @@ function getGamestate(){
     lines.forEach(line => {
         state |= (1n << BigInt(point2id(line[0], line[1])))
     });
-    console.log("Found gamestate: ", state)
+    console.log("Found gamestate: ", state.toString(2).padStart(pointCount*(pointCount-1)/2, '0'))
     return state
 }
 
 function calculateMiniMax(gamestate){
+    return Number((~gamestate) & (gamestate + 1n))
+}
 
+function calculateAlphaBeta(gamestate){
+    return Number((~gamestate) & (gamestate + 1n))
 }
 
 
@@ -241,6 +253,8 @@ function initGame(){
         playerLines.push(new Set())
         playerScore.push(0)
     }
+    players[0] = selectPlayer1.value
+    players[1] = selectPlayer2.value
 
     const arena_x_2 = arena_x / 2
     const arena_y_2 = arena_y / 2
@@ -301,7 +315,9 @@ function initGame(){
             break
     }
 
-    updScore()
+
+    currentPlayer=-1
+    onNextTurn()
 }
 
 function drawPoint(pos_x, pos_y, color){
@@ -393,6 +409,7 @@ function showResults(){
 
 function chooseNextTurn(){
     let move = undefined
+    let selectedAlg = players[currentPlayer]
     switch(selectedAlg){
         case "minmax": 
             move = calculateMiniMax(getGamestate())
@@ -400,8 +417,8 @@ function chooseNextTurn(){
         case "alpha-beta": 
             move = calculateAlphaBeta(getGamestate())
     }
-    let chosenPoints = id2point(move2)
-    console.log(`${selectedAlg}: Choosing ${chosenPoints[0]} ${chosenPoints[1]}`)
+    let chosenPoints = id2point(move)
+    console.log(`${selectedAlg}: Choosing ${chosenPoints[0]} ${chosenPoints[1]} move: ${move.toString(2).padStart(pointCount*(pointCount-1)/2, '0')}`)
     makeAMove(chosenPoints[0], chosenPoints[1])
 
 }
@@ -412,7 +429,7 @@ function makeAMove(from, to){
             from==lines[i][0] && to==lines[i][1] ||
             from==lines[i][1] && to==lines[i][0]
         ){
-            return
+            throw Error(`Move ${from} ${to} is not valid`)
         }
     }
     let intersects = calculateIntersections(from, to).length
@@ -422,16 +439,16 @@ function makeAMove(from, to){
 }
 
 function onNextTurn(){
-    updScore()
     if(!hasValidMoves())
     {
         showResults()
         return
     }
     currentPlayer++
-    if(currentPlayer == playerCount) currentPlayer == 0
+    if(currentPlayer >= playerCount) currentPlayer = 0
+    updScore()
+    console.log(`Current player: ${currentPlayer+1}`)
     if(players[currentPlayer] != "human") chooseNextTurn()
-
 }
 
 drawLoop()
