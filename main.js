@@ -62,8 +62,8 @@ let playerLines = []
 
 class GameNode {
     constructor(score, gamestate, move, childrenC){
+        this.startingScore = score
         this.score = score
-        this.bestScore = score
         this.bestMove = undefined
         this.gamestate = gamestate
         this.parent = 0 // parent
@@ -76,7 +76,7 @@ class GameNode {
     }
 
     setBestScore(score, move){
-        this.bestScore = score
+        this.score = score
         this.bestMove = move
     }
 
@@ -233,38 +233,42 @@ function getGamestate(){
     console.log("Found gamestate: ", state.toString(2).padStart(pointCount*(pointCount-1)/2, '0'))
     return state
 }
-
-function calculateMiniMax(gamestate){
-    let total_lines = Math.floor((pointCount*(pointCount-1))/2);
-    const full_mask = (1n << BigInt(total_lines)) - 1n;
+function buildColMask(total_lines, pow2){
     const collisionTable = new Array(total_lines).fill(0n);
+    for (let s1 = 0; s1 < pointCount; s1++) {
+        for (let e1 = s1+1; e1 < pointCount; e1++) {
+            const l1 = point2id(s1,e1)
+            for (let s2 = 0; s2 < pointCount; s2++) {
+                for (let e2 = s2+1; e2 < pointCount; e2++) {
+                    if(s1 === s2 || s1 === e2 || e1 === s2 || e1 === e2) continue
+                    const l2 = point2id(s2,e2)
 
-    const pow2 = [];
-    for (let i = 0; i < total_lines; i++) {
-        pow2[i] = 1n << BigInt(i);
-    }
-
-    function buildColMask(){
-        for (let s1 = 0; s1 < pointCount; s1++) {
-            for (let e1 = s1+1; e1 < pointCount; e1++) {
-                const l1 = point2id(s1,e1)
-                for (let s2 = 0; s2 < pointCount; s2++) {
-                    for (let e2 = s2+1; e2 < pointCount; e2++) {
-                        if(s1 === s2 || s1 === e2 || e1 === s2 || e1 === e2) continue
-                        const l2 = point2id(s2,e2)
-
-                        const collision = isInside(s2, s1, e1) ^ isInside(e2, s1, e1)
-                        if(collision){
-                            collisionTable[l1] |= pow2[l2]
-                            collisionTable[l2] |= pow2[l1]
-                        }
+                    const collision = isInside(s2, s1, e1) ^ isInside(e2, s1, e1)
+                    if(collision){
+                        collisionTable[l1] |= pow2[l2]
+                        collisionTable[l2] |= pow2[l1]
                     }
                 }
             }
         }
     }
+    return collisionTable
+}
 
-    buildColMask()
+function buildPowTable(total_lines){
+    const pow2 = []
+    for (let i = 0; i < total_lines; i++) {
+        pow2[i] = 1n << BigInt(i)
+    }
+    return pow2
+}
+
+function calculateMiniMax(gamestate){
+    const total_lines = Math.floor((pointCount*(pointCount-1))/2)
+    const full_mask = (1n << BigInt(total_lines)) - 1n
+    const pow2 = buildPowTable(total_lines)
+    const collisionTable = buildColMask(total_lines, pow2)
+
     
     const childrenAtDepth = []
     let totalSize = 0
@@ -280,7 +284,7 @@ function calculateMiniMax(gamestate){
 
     function minimax(mask, last_move_id, acc_score, depth, max_player){
         total_calls++
-        let cKey = `${mask}:${last_move_id}:${acc_score}` // Slow, ielikt atpakal hash
+        let cKey = `${mask}:${last_move_id}:${max_player}` // Slow, ielikt atpakal hash
         let best_score = max_player?-Infinity:Infinity
         let best_move = 0
         
@@ -290,10 +294,9 @@ function calculateMiniMax(gamestate){
             return memCheck
         }
 
-        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1 : 0
-        let last_move_mask = mask | pow2[last_move_id]
+        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1 : 1
  
-        const nMask = mask | last_move_mask
+        const nMask = mask | pow2[last_move_id]
         if(depth === 0 || nMask === full_mask) {
             const gameNode = new GameNode(acc_score + collision_score, mask, last_move_id, 0)
             return gameNode
@@ -332,11 +335,15 @@ function calculateMiniMax(gamestate){
         total_calls++
         let empty = (~mask) & full_mask
         const nMask = mask
+
+        let best_score = -Infinity
+        let best_move = -1
+
         let move = 0
         let selfNode = new GameNode(0, 0, -1, childrenAtDepth[maximumDepth])
         while (empty) {
             if (empty & 1n){
-                // Webworkers should call this
+                // Ielikt webworkera, lai viss ui nehango? (+uz vairakiem coriem, lai ir atraks)
                 const gameNode = minimax(nMask, move, 0, maximumDepth-1, false)
                 selfNode.children[move] = gameNode
                 if(gameNode.score > best_score){
@@ -348,12 +355,10 @@ function calculateMiniMax(gamestate){
             move++
         }
         selfNode.setBestScore(best_score, best_move)
-        memory.set(cKey, selfNode)
         return selfNode
     }
     console.log(`Starting minimax with depth: ${maximumDepth}`)
-    // let result = minimax(gamestate, -1, 0, maximumDepth, true)
-    let result = minimax_calc()
+    let result = minimax_calc(gamestate)
     console.log(total_calls, total_colls)
     console.log(result)
     // console.log(gameTree)
@@ -362,7 +367,118 @@ function calculateMiniMax(gamestate){
 }
 
 function calculateAlphaBeta(gamestate){
-    return Number((~gamestate) & (gamestate + 1n))
+    const total_lines = Math.floor((pointCount*(pointCount-1))/2)
+    const full_mask = (1n << BigInt(total_lines)) - 1n
+    const pow2 = buildPowTable(total_lines)
+    const collisionTable = buildColMask(total_lines, pow2)
+
+    
+    const childrenAtDepth = []
+    let totalSize = 0
+    for (let i = 0; i < maximumDepth; i++) {
+        let size = getDepthSize(i+1)
+        childrenAtDepth.unshift(Math.floor(pointCount * (pointCount - 1) / 2) - i)
+        totalSize += size
+    }
+    const memory = new Map()
+
+    let total_calls = 0
+    let total_colls = 0
+
+    function alphabeta(mask, last_move_id, acc_score, depth, a, b, max_player){
+        total_calls++
+        let cKey = `${mask}:${last_move_id}:${acc_score}` // Slow, ielikt atpakal hash
+        let best_score = max_player?-Infinity:Infinity
+        let best_move = 0
+        
+        const memCheck = memory.get(cKey)
+        if(memCheck) {
+            total_colls++
+            return memCheck
+        }
+
+        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1 : 1
+ 
+        const nMask = mask | pow2[last_move_id]
+        if(depth === 0 || nMask === full_mask) {
+            const gameNode = new GameNode(acc_score + collision_score, mask, last_move_id, 0)
+            return gameNode
+        } 
+
+
+        let empty = (~mask) & full_mask
+        let move = 0
+        let selfNode = new GameNode(acc_score, mask, last_move_id, childrenAtDepth[depth])
+        while (empty) {
+            if (empty & 1n){
+                const gameNode = alphabeta(nMask, move, acc_score + collision_score, depth-1, a, b, !max_player)
+                selfNode.children[move] = gameNode
+                if(max_player){
+                    if(gameNode.score > best_score){
+                        best_score = gameNode.score
+                        best_move = move
+                        a = gameNode.score
+                        if(a >= b) break
+                    }
+                }
+                else {
+                    if(gameNode.score < best_score){
+                        best_score = gameNode.score
+                        best_move = move
+                        b = gameNode.score
+                        if(a >= b) break
+                    }
+                }
+            }
+            
+            empty >>= 1n
+            move++
+        }
+        selfNode.setBestScore(best_score, best_move)
+        if(!Number.isFinite(selfNode.score)) debugger
+        memory.set(cKey, selfNode)
+        return selfNode
+    }
+
+    function alphabeta_calc(mask){
+        total_calls++
+        let empty = (~mask) & full_mask
+        const nMask = mask
+
+        let best_score = -Infinity
+        let best_move = -1
+
+
+        let a = -Infinity
+        let b = +Infinity
+
+        let move = 0
+        let selfNode = new GameNode(0, 0, -1, childrenAtDepth[maximumDepth])
+        while (empty) {
+            if (empty & 1n){
+                // Ielikt webworkera, lai viss ui nehango? (+uz vairakiem coriem, lai ir atraks)
+                const gameNode = alphabeta(nMask, move, 0, maximumDepth-1, a, b, false)
+                selfNode.children[move] = gameNode
+                if(gameNode.score > best_score){
+                    best_score = gameNode.score
+                    best_move = move
+                    a = best_score
+                    
+                }
+            }
+            empty >>= 1n
+            move++
+        }
+        selfNode.setBestScore(best_score, best_move)
+        return selfNode
+    }
+    console.log(`Starting minimax with depth: ${maximumDepth}`)
+    let result = alphabeta_calc(gamestate)
+    console.log(total_calls, total_colls)
+    console.log(result)
+    // console.log(gameTree)
+    console.log(`Move found: ${result.bestMove}`)
+    return pow2[result.bestMove]
 }
 
 
