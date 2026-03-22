@@ -679,7 +679,34 @@ function hasValidMoves(){
 }
 
 function showResults(){
-    // TODO
+    let winnerIndex = 0
+    let minScore = playerScore[0]
+    
+    for (let i = 1; i < playerScore.length; i++) {
+        if (playerScore[i] < minScore) {
+            minScore = playerScore[i]
+            winnerIndex = i
+        }
+    }
+
+    const playerType = players[winnerIndex]
+    const playerNumber = winnerIndex + 1
+    
+    document.getElementById("winner-display").textContent = `Player ${playerNumber} (${playerType}) Wins!`
+
+    let scoresHTML = ''
+    for (let i = 0; i < playerCount; i++) {
+        const pType = players[i]
+        scoresHTML += `
+            <div class="score-entry">
+                <span class="player-name">Player ${i+1} (${pType})</span>
+                <span class="score-value">${playerScore[i]}</span>
+            </div>
+        `
+    }
+    
+    document.getElementById("final-scores-container").innerHTML = scoresHTML
+    document.getElementById("results-screen").classList.add("show")
 }
 
 function chooseNextTurn(){
@@ -727,4 +754,47 @@ function onNextTurn(){
 }
 
 drawLoop()
-initGame()
+
+// ========== SCREEN MANAGEMENT ==========
+
+// Get UI elements
+const menuScreen = document.getElementById("menu-screen")
+const gameScreen = document.getElementById("game-screen")
+const resultsScreen = document.getElementById("results-screen")
+const startButton = document.getElementById("start-button")
+const playAgainButton = document.getElementById("play-again-button")
+const menuButton = document.getElementById("menu-button")
+const menuFromGameButton = document.getElementById("menu-from-game-button")
+const pointsValueDisplay = document.getElementById("points-value")
+
+// Start game - transition from menu to game
+startButton.addEventListener("click", () => {
+    menuScreen.classList.add("hidden")
+    gameScreen.style.display = "block"
+    initGame()
+})
+
+// Play again - keep game screen, hide results, reset game
+playAgainButton.addEventListener("click", () => {
+    resultsScreen.classList.remove("show")
+    initGame()
+})
+
+// Back to menu from results - show menu, hide game and results
+menuButton.addEventListener("click", () => {
+    menuScreen.classList.remove("hidden")
+    gameScreen.style.display = "none"
+    resultsScreen.classList.remove("show")
+})
+
+// Back to menu from game - show menu, hide game and results
+menuFromGameButton.addEventListener("click", () => {
+    menuScreen.classList.remove("hidden")
+    gameScreen.style.display = "none"
+    resultsScreen.classList.remove("show")
+})
+
+// Update points display when slider changes
+pointSlider.addEventListener("input", (e) => {
+    pointsValueDisplay.textContent = e.target.value
+})
