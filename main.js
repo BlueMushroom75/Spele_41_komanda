@@ -37,8 +37,8 @@ const arena_y = 400;
 
 const canvasW = canvas.width
 const canvasH = canvas.height
-const centerX = canvasW/2
-const centerY = canvasH/2
+const centerX = canvasW / 2
+const centerY = canvasH / 2
 
 
 let selectedShape = shapeDropdown.value // Nomaina ar UI
@@ -50,7 +50,7 @@ let filledPoints = [] // masīvs, satur visus punktus un viņu id, pēc id nosak
 let drawPoints = [] // masīvs, satur visus punktus un viņu pozīcijas
 let highlightedPoint = undefined
 let fromDrawPoint = undefined
-let mousePos = {x: 0, y:0}
+let mousePos = { x: 0, y: 0 }
 
 
 let currentPlayer = 0
@@ -61,7 +61,7 @@ let playerLines = []
 
 
 class GameNode {
-    constructor(score, gamestate, move, childrenC){
+    constructor(score, gamestate, move, childrenC) {
         this.startingScore = score
         this.score = score
         this.bestMove = undefined
@@ -71,45 +71,45 @@ class GameNode {
         this.move = move
     }
 
-    setParent(parent){
+    setParent(parent) {
         this.parent = parent
     }
 
-    setBestScore(score, move){
+    setBestScore(score, move) {
         this.score = score
         this.bestMove = move
     }
 
-    getBestChild(){
+    getBestChild() {
         return this.children[this.bestMove]
     }
 
 }
 
 
-document.addEventListener("mousemove", (e)=>{
+document.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
-    mousePos = {x: e.clientX - rect.left, y:e.clientY - rect.top}
+    mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top }
 
-    let minX = mouseMargin*2
-    let minY = mouseMargin*2
+    let minX = mouseMargin * 2
+    let minY = mouseMargin * 2
     let selPoint = undefined
     for (let i = 0; i < drawPoints.length; i++) {
         const el = drawPoints[i];
-        let pX = mousePos.x -el[0]
-        let pY = mousePos.y -el[1]
-        if(Math.hypot(pX**2 + pY**2)< Math.hypot(minX**2, minY**2) && i != fromDrawPoint){//filledPoints[i] == 0 && i != fromDrawPoint){
+        let pX = mousePos.x - el[0]
+        let pY = mousePos.y - el[1]
+        if (Math.hypot(pX ** 2 + pY ** 2) < Math.hypot(minX ** 2, minY ** 2) && i != fromDrawPoint) {//filledPoints[i] == 0 && i != fromDrawPoint){
             let invalidLines = 0
-            for(let j=0; j<lines.length; j++){
-                if(
-                    fromDrawPoint==lines[j][0] && i==lines[j][1] ||
-                    fromDrawPoint==lines[j][1] && i==lines[j][0]
-                ){
-                    invalidLines++ 
+            for (let j = 0; j < lines.length; j++) {
+                if (
+                    fromDrawPoint == lines[j][0] && i == lines[j][1] ||
+                    fromDrawPoint == lines[j][1] && i == lines[j][0]
+                ) {
+                    invalidLines++
                     break
                 }
             }
-            if(invalidLines==0){
+            if (invalidLines == 0) {
                 selPoint = i
                 minX = pX
                 minY = pY
@@ -119,12 +119,12 @@ document.addEventListener("mousemove", (e)=>{
     highlightedPoint = selPoint
 
 })
-document.addEventListener("mousedown", (e)=>{
+document.addEventListener("mousedown", (e) => {
     fromDrawPoint = highlightedPoint
     highlightedPoint = undefined
 })
-document.addEventListener("mouseup", (e)=>{
-    if(fromDrawPoint != highlightedPoint && fromDrawPoint != undefined && highlightedPoint != undefined){
+document.addEventListener("mouseup", (e) => {
+    if (fromDrawPoint != highlightedPoint && fromDrawPoint != undefined && highlightedPoint != undefined) {
         makeAMove(fromDrawPoint, highlightedPoint)
     }
     fromDrawPoint = undefined
@@ -140,26 +140,26 @@ let graph = {}
 shapeDropdown.addEventListener("input", (e) => {
     selectedShape = e.target.value
     console.log(selectedShape)
-    initGame()
+    // initGame()
 })
 pointSlider.addEventListener("input", (e) => {
     pointCount = Number(e.target.value)
     console.log(pointCount)
-    initGame()
+    // initGame()
 })
 serchDepthInput.addEventListener("input", (e) => {
     maximumDepth = e.target.value
     console.log(maximumDepth)
-    initGame()
+    // initGame()
 })
 
 selectPlayer1.addEventListener("input", (e) => {
     players[0] = e.target.value
-    initGame()
+    // initGame()
 })
 selectPlayer2.addEventListener("input", (e) => {
     players[1] = e.target.value
-    initGame()
+    // initGame()
 })
 
 
@@ -167,21 +167,21 @@ resetButton.addEventListener("click", (e) => {
     initGame()
 })
 
-function line2id(line){
+function line2id(line) {
     return line[2]
 }
 
-function updScore(){
+function updScore() {
     let msg = "Spēlētāju punkti: \n"
     for (let i = 0; i < playerCount; i++) {
-        msg += `${i+1}. ${players[i]}: ${playerScore[i]}\n`
-        
+        msg += `${i + 1}. ${players[i]}: ${playerScore[i]}\n`
+
     }
     uiPlayerPoints.textContent = msg
-    uiCurrentPlayer.textContent = `${currentPlayer+1}. ${players[currentPlayer]}`
+    uiCurrentPlayer.textContent = `${currentPlayer + 1}. ${players[currentPlayer]}`
 }
 
-function getDepthSize(depth){
+function getDepthSize(depth) {
     const P = Math.floor(pointCount * (pointCount - 1) / 2)
     let sum = 1
     for (let i = 0; i < depth; i++) {
@@ -190,11 +190,11 @@ function getDepthSize(depth){
     return sum
 }
 
-function updIntersectCount(count){
+function updIntersectCount(count) {
     uiIntersectPreview.textContent = count
 }
 
-function addFunctionalLine(from, to){
+function addFunctionalLine(from, to) {
     playerLines[currentPlayer].add(idCounter)
     lines.push([from, to, idCounter])
     filledPoints[from] = idCounter
@@ -210,41 +210,41 @@ function point2id(start, end) {
 }
 
 
-function id2point(bitmask){
+function id2point(bitmask) {
 
     let id = bitmask.toString(2).length - 1
     // TODO
     for (let i = 0; i < pointCount; i++) {
-        for (let j = i+1; j < pointCount; j++) {
-            if(id == point2id(i,j)) return [i,j]
+        for (let j = i + 1; j < pointCount; j++) {
+            if (id == point2id(i, j)) return [i, j]
         }
-        
+
     }
 
     throw new Error("Invalid move")
 }
 
 
-function getGamestate(){
+function getGamestate() {
     let state = 0n
     lines.forEach(line => {
         state |= (1n << BigInt(point2id(line[0], line[1])))
     });
-    console.log("Found gamestate: ", state.toString(2).padStart(pointCount*(pointCount-1)/2, '0'))
+    console.log("Found gamestate: ", state.toString(2).padStart(pointCount * (pointCount - 1) / 2, '0'))
     return state
 }
-function buildColMask(total_lines, pow2){
+function buildColMask(total_lines, pow2) {
     const collisionTable = new Array(total_lines).fill(0n);
     for (let s1 = 0; s1 < pointCount; s1++) {
-        for (let e1 = s1+1; e1 < pointCount; e1++) {
-            const l1 = point2id(s1,e1)
+        for (let e1 = s1 + 1; e1 < pointCount; e1++) {
+            const l1 = point2id(s1, e1)
             for (let s2 = 0; s2 < pointCount; s2++) {
-                for (let e2 = s2+1; e2 < pointCount; e2++) {
-                    if(s1 === s2 || s1 === e2 || e1 === s2 || e1 === e2) continue
-                    const l2 = point2id(s2,e2)
+                for (let e2 = s2 + 1; e2 < pointCount; e2++) {
+                    if (s1 === s2 || s1 === e2 || e1 === s2 || e1 === e2) continue
+                    const l2 = point2id(s2, e2)
 
                     const collision = isInside(s2, s1, e1) ^ isInside(e2, s1, e1)
-                    if(collision){
+                    if (collision) {
                         collisionTable[l1] |= pow2[l2]
                         collisionTable[l2] |= pow2[l1]
                     }
@@ -255,7 +255,7 @@ function buildColMask(total_lines, pow2){
     return collisionTable
 }
 
-function buildPowTable(total_lines){
+function buildPowTable(total_lines) {
     const pow2 = []
     for (let i = 0; i < total_lines; i++) {
         pow2[i] = 1n << BigInt(i)
@@ -263,17 +263,17 @@ function buildPowTable(total_lines){
     return pow2
 }
 
-function calculateMiniMax(gamestate){
-    const total_lines = Math.floor((pointCount*(pointCount-1))/2)
+function calculateMiniMax(gamestate) {
+    const total_lines = Math.floor((pointCount * (pointCount - 1)) / 2)
     const full_mask = (1n << BigInt(total_lines)) - 1n
     const pow2 = buildPowTable(total_lines)
     const collisionTable = buildColMask(total_lines, pow2)
 
-    
+
     const childrenAtDepth = []
     let totalSize = 0
     for (let i = 0; i < maximumDepth; i++) {
-        let size = getDepthSize(i+1)
+        let size = getDepthSize(i + 1)
         childrenAtDepth.unshift(Math.floor(pointCount * (pointCount - 1) / 2) - i)
         totalSize += size
     }
@@ -282,42 +282,42 @@ function calculateMiniMax(gamestate){
     let total_calls = 0
     let total_colls = 0
 
-    function minimax(mask, last_move_id, acc_score, depth, max_player){
+    function minimax(mask, last_move_id, acc_score, depth, max_player) {
         total_calls++
         let cKey = `${mask}:${last_move_id}:${max_player}` // Slow, ielikt atpakal hash
-        let best_score = max_player?-Infinity:Infinity
+        let best_score = max_player ? -Infinity : Infinity
         let best_move = 0
-        
+
         const memCheck = memory.get(cKey)
-        if(memCheck) {
+        if (memCheck) {
             total_colls++
             return memCheck
         }
 
         let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1 : 1
- 
+
         const nMask = mask | pow2[last_move_id]
-        if(depth === 0 || nMask === full_mask) {
+        if (depth === 0 || nMask === full_mask) {
             const gameNode = new GameNode(acc_score + collision_score, mask, last_move_id, 0)
             return gameNode
-        } 
+        }
 
 
         let empty = (~mask) & full_mask
         let move = 0
         let selfNode = new GameNode(acc_score, mask, last_move_id, childrenAtDepth[depth])
         while (empty) {
-            if (empty & 1n){
-                const gameNode = minimax(nMask, move, acc_score + collision_score, depth-1, !max_player)
+            if (empty & 1n) {
+                const gameNode = minimax(nMask, move, acc_score + collision_score, depth - 1, !max_player)
                 selfNode.children[move] = gameNode
-                if(max_player){
-                    if(gameNode.score > best_score){
+                if (max_player) {
+                    if (gameNode.score > best_score) {
                         best_score = gameNode.score
                         best_move = move
                     }
                 }
                 else {
-                    if(gameNode.score < best_score){
+                    if (gameNode.score < best_score) {
                         best_score = gameNode.score
                         best_move = move
                     }
@@ -331,7 +331,7 @@ function calculateMiniMax(gamestate){
         return selfNode
     }
 
-    function minimax_calc(mask){
+    function minimax_calc(mask) {
         total_calls++
         let empty = (~mask) & full_mask
         const nMask = mask
@@ -342,11 +342,11 @@ function calculateMiniMax(gamestate){
         let move = 0
         let selfNode = new GameNode(0, 0, -1, childrenAtDepth[maximumDepth])
         while (empty) {
-            if (empty & 1n){
+            if (empty & 1n) {
                 // Ielikt webworkera, lai viss ui nehango? (+uz vairakiem coriem, lai ir atraks)
-                const gameNode = minimax(nMask, move, 0, maximumDepth-1, false)
+                const gameNode = minimax(nMask, move, 0, maximumDepth - 1, false)
                 selfNode.children[move] = gameNode
-                if(gameNode.score > best_score){
+                if (gameNode.score > best_score) {
                     best_score = gameNode.score
                     best_move = move
                 }
@@ -366,17 +366,17 @@ function calculateMiniMax(gamestate){
     return pow2[result.bestMove]
 }
 
-function calculateAlphaBeta(gamestate){
-    const total_lines = Math.floor((pointCount*(pointCount-1))/2)
+function calculateAlphaBeta(gamestate) {
+    const total_lines = Math.floor((pointCount * (pointCount - 1)) / 2)
     const full_mask = (1n << BigInt(total_lines)) - 1n
     const pow2 = buildPowTable(total_lines)
     const collisionTable = buildColMask(total_lines, pow2)
 
-    
+
     const childrenAtDepth = []
     let totalSize = 0
     for (let i = 0; i < maximumDepth; i++) {
-        let size = getDepthSize(i+1)
+        let size = getDepthSize(i + 1)
         childrenAtDepth.unshift(Math.floor(pointCount * (pointCount - 1) / 2) - i)
         totalSize += size
     }
@@ -385,62 +385,62 @@ function calculateAlphaBeta(gamestate){
     let total_calls = 0
     let total_colls = 0
 
-    function alphabeta(mask, last_move_id, acc_score, depth, a, b, max_player){
+    function alphabeta(mask, last_move_id, acc_score, depth, a, b, max_player) {
         total_calls++
         let cKey = `${mask}:${last_move_id}:${acc_score}` // Slow, ielikt atpakal hash
-        let best_score = max_player?-Infinity:Infinity
+        let best_score = max_player ? -Infinity : Infinity
         let best_move = 0
-        
+
         const memCheck = memory.get(cKey)
-        if(memCheck) {
+        if (memCheck) {
             total_colls++
             return memCheck
         }
 
         let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1 : 1
- 
+
         const nMask = mask | pow2[last_move_id]
-        if(depth === 0 || nMask === full_mask) {
+        if (depth === 0 || nMask === full_mask) {
             const gameNode = new GameNode(acc_score + collision_score, mask, last_move_id, 0)
             return gameNode
-        } 
+        }
 
 
         let empty = (~mask) & full_mask
         let move = 0
         let selfNode = new GameNode(acc_score, mask, last_move_id, childrenAtDepth[depth])
         while (empty) {
-            if (empty & 1n){
-                const gameNode = alphabeta(nMask, move, acc_score + collision_score, depth-1, a, b, !max_player)
+            if (empty & 1n) {
+                const gameNode = alphabeta(nMask, move, acc_score + collision_score, depth - 1, a, b, !max_player)
                 selfNode.children[move] = gameNode
-                if(max_player){
-                    if(gameNode.score > best_score){
+                if (max_player) {
+                    if (gameNode.score > best_score) {
                         best_score = gameNode.score
                         best_move = move
                         a = gameNode.score
-                        if(a >= b) break
+                        if (a >= b) break
                     }
                 }
                 else {
-                    if(gameNode.score < best_score){
+                    if (gameNode.score < best_score) {
                         best_score = gameNode.score
                         best_move = move
                         b = gameNode.score
-                        if(a >= b) break
+                        if (a >= b) break
                     }
                 }
             }
-            
+
             empty >>= 1n
             move++
         }
         selfNode.setBestScore(best_score, best_move)
-        if(!Number.isFinite(selfNode.score)) debugger
+        if (!Number.isFinite(selfNode.score)) debugger
         memory.set(cKey, selfNode)
         return selfNode
     }
 
-    function alphabeta_calc(mask){
+    function alphabeta_calc(mask) {
         total_calls++
         let empty = (~mask) & full_mask
         const nMask = mask
@@ -455,15 +455,15 @@ function calculateAlphaBeta(gamestate){
         let move = 0
         let selfNode = new GameNode(0, 0, -1, childrenAtDepth[maximumDepth])
         while (empty) {
-            if (empty & 1n){
+            if (empty & 1n) {
                 // Ielikt webworkera, lai viss ui nehango? (+uz vairakiem coriem, lai ir atraks)
-                const gameNode = alphabeta(nMask, move, 0, maximumDepth-1, a, b, false)
+                const gameNode = alphabeta(nMask, move, 0, maximumDepth - 1, a, b, false)
                 selfNode.children[move] = gameNode
-                if(gameNode.score > best_score){
+                if (gameNode.score > best_score) {
                     best_score = gameNode.score
                     best_move = move
                     a = best_score
-                    
+
                 }
             }
             empty >>= 1n
@@ -482,34 +482,34 @@ function calculateAlphaBeta(gamestate){
 }
 
 
-function isInside(point, start, end){
-    if(start > end)
+function isInside(point, start, end) {
+    if (start > end)
         return point > start || point < end
     else
         return point > start && point < end
 }
 
 
-function friendlyLine(id){
+function friendlyLine(id) {
     return playerLines[currentPlayer].has(id)
 }
 
-function calculateIntersections(from, to){
+function calculateIntersections(from, to) {
     let intersections = []
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if(
+        if (
             (from != line[0] && from != line[1] && to != line[0] && to != line[1]) && (
-            (isInside(line[0], from, to) && !isInside(line[1], from, to)) ||
-            (isInside(line[1], from, to) && !isInside(line[0], from, to)))
-        ){
+                (isInside(line[0], from, to) && !isInside(line[1], from, to)) ||
+                (isInside(line[1], from, to) && !isInside(line[0], from, to)))
+        ) {
             intersections.push(line)
         }
     }
     return intersections
 }
 
-function initGame(){
+function initGame() {
     lines = []
     filledPoints = []
     drawPoints = []
@@ -521,7 +521,7 @@ function initGame(){
     for (let i = 0; i < pointCount; i++) {
         filledPoints.push(0) // Todo
     }
-    
+
     playerLines = []
     playerScore = []
     for (let i = 0; i < playerCount; i++) {
@@ -533,26 +533,26 @@ function initGame(){
 
     const arena_x_2 = arena_x / 2
     const arena_y_2 = arena_y / 2
-    switch(selectedShape){
+    switch (selectedShape) {
         case "square":
             {
-                let lSpace = 2*(arena_x + arena_y) / pointCount
+                let lSpace = 2 * (arena_x + arena_y) / pointCount
                 for (let i = 0; i < pointCount; i++) {
-                    offset = i*lSpace
-                    if(offset < arena_x){
-                        drawPoints.push([centerX+offset - arena_x_2, centerY+arena_y_2])
+                    offset = i * lSpace
+                    if (offset < arena_x) {
+                        drawPoints.push([centerX + offset - arena_x_2, centerY + arena_y_2])
                     }
-                    else if (offset < arena_x+arena_y){
+                    else if (offset < arena_x + arena_y) {
                         offset = offset - arena_x
-                        drawPoints.push([centerX+arena_x_2, centerY+arena_y_2 - offset])
+                        drawPoints.push([centerX + arena_x_2, centerY + arena_y_2 - offset])
                     }
-                    else if (offset < 2*arena_x+arena_y){
-                        offset = offset - arena_x-arena_y
-                        drawPoints.push([centerX+arena_x_2 - offset, centerY+-arena_y_2])
+                    else if (offset < 2 * arena_x + arena_y) {
+                        offset = offset - arena_x - arena_y
+                        drawPoints.push([centerX + arena_x_2 - offset, centerY + -arena_y_2])
                     }
-                    else{
-                        offset = offset - 2*arena_x-arena_y
-                        drawPoints.push([centerX-arena_x_2, centerY+offset-arena_y_2])
+                    else {
+                        offset = offset - 2 * arena_x - arena_y
+                        drawPoints.push([centerX - arena_x_2, centerY + offset - arena_y_2])
                     }
                 }
             }
@@ -560,30 +560,30 @@ function initGame(){
         case "circle":
             {
                 for (let i = 0; i < pointCount; i++) {
-                    let deg = (i / pointCount)* Math.PI * 2
-                    drawPoints.push([centerX+arena_x_2*Math.cos(deg), centerY+arena_y_2*Math.sin(deg)])
+                    let deg = (i / pointCount) * Math.PI * 2
+                    drawPoints.push([centerX + arena_x_2 * Math.cos(deg), centerY + arena_y_2 * Math.sin(deg)])
                 }
             }
             break
         case "triangle":
             {
-                let hypot = Math.sqrt((arena_x_2)**2 + arena_y**2)
-                let lSpace = (arena_x + 2*hypot ) / pointCount
+                let hypot = Math.sqrt((arena_x_2) ** 2 + arena_y ** 2)
+                let lSpace = (arena_x + 2 * hypot) / pointCount
                 let rat = arena_x_2 / arena_y
                 for (let i = 0; i < pointCount; i++) {
-                    offset = i*lSpace
-                    if(offset < arena_x){
-                        drawPoints.push([centerX+offset - arena_x_2, centerY+arena_y_2])
+                    offset = i * lSpace
+                    if (offset < arena_x) {
+                        drawPoints.push([centerX + offset - arena_x_2, centerY + arena_y_2])
                     }
-                    else if (offset < arena_x+hypot){
+                    else if (offset < arena_x + hypot) {
                         offset -= arena_x
-                        let cY = offset / Math.sqrt(rat**2 + 1)
-                        drawPoints.push([centerX+arena_x_2-cY*rat, centerY+arena_y_2 - cY])
+                        let cY = offset / Math.sqrt(rat ** 2 + 1)
+                        drawPoints.push([centerX + arena_x_2 - cY * rat, centerY + arena_y_2 - cY])
                     }
-                    else{
-                        offset -= arena_x+hypot
-                        let cY = offset / Math.sqrt(rat**2 + 1)
-                        drawPoints.push([centerX-cY*rat, centerY-arena_y_2+cY])
+                    else {
+                        offset -= arena_x + hypot
+                        let cY = offset / Math.sqrt(rat ** 2 + 1)
+                        drawPoints.push([centerX - cY * rat, centerY - arena_y_2 + cY])
                     }
                 }
             }
@@ -591,17 +591,17 @@ function initGame(){
     }
 
 
-    currentPlayer=-1
+    currentPlayer = -1
     onNextTurn()
 }
 
-function drawPoint(pos_x, pos_y, color){
+function drawPoint(pos_x, pos_y, color) {
     ctx.beginPath();
     ctx.fillStyle = color;
     ctx.arc(pos_x, pos_y, pointSize, 0, 2 * Math.PI);
     ctx.fill();
 }
-function drawLine(fromX, fromY, toX, toY, col, dashed=[]){
+function drawLine(fromX, fromY, toX, toY, col, dashed = []) {
     ctx.beginPath();
     ctx.strokeStyle = col;
     ctx.lineWidth = lineWidth;
@@ -611,7 +611,7 @@ function drawLine(fromX, fromY, toX, toY, col, dashed=[]){
     ctx.stroke();
     ctx.setLineDash([]);
 }
-function drawHighlight(x,y){
+function drawHighlight(x, y) {
     ctx.beginPath();
     ctx.strokeStyle = COLOR_SELECTED;
     ctx.setLineDash([10, 10]);
@@ -620,7 +620,7 @@ function drawHighlight(x,y){
     ctx.stroke();
     ctx.setLineDash([]);
 }
-function drawFrom(x,y){
+function drawFrom(x, y) {
     ctx.beginPath();
     ctx.strokeStyle = COLOR_FRIEDNLY;
     ctx.lineWidth = lineWidth;
@@ -628,7 +628,7 @@ function drawFrom(x,y){
     ctx.stroke();
 }
 
-function drawLoop(){
+function drawLoop() {
     ctx.clearRect(0, 0, canvasW, canvasH);
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -638,10 +638,10 @@ function drawLoop(){
         drawLine(from[0], from[1], to[0], to[1], drawCol)
     }
 
-    if(fromDrawPoint != undefined && highlightedPoint != undefined) {
+    if (fromDrawPoint != undefined && highlightedPoint != undefined) {
         let point = drawPoints[fromDrawPoint]
         let hPoint = drawPoints[highlightedPoint]
-        drawLine(point[0], point[1], hPoint[0], hPoint[1], COLOR_FRIEDNLY, [10,10])
+        drawLine(point[0], point[1], hPoint[0], hPoint[1], COLOR_FRIEDNLY, [10, 10])
         const intersects = calculateIntersections(fromDrawPoint, highlightedPoint)
         for (let i = 0; i < intersects.length; i++) {
             const intersect = intersects[i];
@@ -660,28 +660,28 @@ function drawLoop(){
 
     drawPoint(mousePos.x, mousePos.y, COLOR_SELECTED)
 
-    
-    if(fromDrawPoint != undefined) {
+
+    if (fromDrawPoint != undefined) {
         let point = drawPoints[fromDrawPoint]
         drawFrom(point[0], point[1])
     }
-    if(highlightedPoint != undefined) {
+    if (highlightedPoint != undefined) {
         let point = drawPoints[highlightedPoint]
         drawHighlight(point[0], point[1])
     }
     requestAnimationFrame(drawLoop)
 }
 
-function hasValidMoves(){
-    let maxLineCount = pointCount*(pointCount-1)/2
+function hasValidMoves() {
+    let maxLineCount = pointCount * (pointCount - 1) / 2
     console.log("Has valid moves left: ", lines.length < maxLineCount)
     return lines.length < maxLineCount
 }
 
-function showResults(){
+function showResults() {
     let winnerIndex = 0
     let minScore = playerScore[0]
-    
+
     for (let i = 1; i < playerScore.length; i++) {
         if (playerScore[i] < minScore) {
             minScore = playerScore[i]
@@ -691,7 +691,7 @@ function showResults(){
 
     const playerType = players[winnerIndex]
     const playerNumber = winnerIndex + 1
-    
+
     document.getElementById("winner-display").textContent = `Player ${playerNumber} (${playerType}) Wins!`
 
     let scoresHTML = ''
@@ -699,58 +699,58 @@ function showResults(){
         const pType = players[i]
         scoresHTML += `
             <div class="score-entry">
-                <span class="player-name">Player ${i+1} (${pType})</span>
+                <span class="player-name">Player ${i + 1} (${pType})</span>
                 <span class="score-value">${playerScore[i]}</span>
             </div>
         `
     }
-    
+
     document.getElementById("final-scores-container").innerHTML = scoresHTML
     document.getElementById("results-screen").classList.add("show")
 }
 
-function chooseNextTurn(){
+function chooseNextTurn() {
     let move = undefined
     let selectedAlg = players[currentPlayer]
-    switch(selectedAlg){
-        case "minmax": 
+    switch (selectedAlg) {
+        case "minmax":
             move = calculateMiniMax(getGamestate())
             break
-        case "alpha-beta": 
+        case "alpha-beta":
             move = calculateAlphaBeta(getGamestate())
     }
     let chosenPoints = id2point(move)
-    console.log(`${selectedAlg}: Choosing ${chosenPoints[0]} ${chosenPoints[1]} move: ${move.toString(2).padStart(pointCount*(pointCount-1)/2, '0')}`)
+    console.log(`${selectedAlg}: Choosing ${chosenPoints[0]} ${chosenPoints[1]} move: ${move.toString(2).padStart(pointCount * (pointCount - 1) / 2, '0')}`)
     makeAMove(chosenPoints[0], chosenPoints[1])
 
 }
 
-function makeAMove(from, to){
-    for(i=0; i<lines.length; i++){
-        if(
-            from==lines[i][0] && to==lines[i][1] ||
-            from==lines[i][1] && to==lines[i][0]
-        ){
+function makeAMove(from, to) {
+    for (i = 0; i < lines.length; i++) {
+        if (
+            from == lines[i][0] && to == lines[i][1] ||
+            from == lines[i][1] && to == lines[i][0]
+        ) {
             throw Error(`Move ${from} ${to} is not valid`)
         }
     }
     let intersects = calculateIntersections(from, to).length
     addFunctionalLine(from, to)
-    playerScore[currentPlayer] += intersects?1:0
+    playerScore[currentPlayer] += intersects ? 1 : 0
     onNextTurn()
 }
 
-function onNextTurn(){
-    if(!hasValidMoves())
-    {
+function onNextTurn() {
+    if (!hasValidMoves()) {
+        updScore()
         showResults()
         return
     }
     currentPlayer++
-    if(currentPlayer >= playerCount) currentPlayer = 0
+    if (currentPlayer >= playerCount) currentPlayer = 0
     updScore()
-    console.log(`Current player: ${currentPlayer+1}`)
-    if(players[currentPlayer] != "human") chooseNextTurn()
+    console.log(`Current player: ${currentPlayer + 1}`)
+    if (players[currentPlayer] != "human") chooseNextTurn()
 }
 
 drawLoop()
@@ -766,6 +766,7 @@ const playAgainButton = document.getElementById("play-again-button")
 const menuButton = document.getElementById("menu-button")
 const menuFromGameButton = document.getElementById("menu-from-game-button")
 const pointsValueDisplay = document.getElementById("points-value")
+const closeResultsButton = document.getElementById("close-results-button")
 
 // Start game - transition from menu to game
 startButton.addEventListener("click", () => {
@@ -778,6 +779,11 @@ startButton.addEventListener("click", () => {
 playAgainButton.addEventListener("click", () => {
     resultsScreen.classList.remove("show")
     initGame()
+})
+
+// Close results screen
+closeResultsButton.addEventListener("click", () => {
+    resultsScreen.classList.remove("show")
 })
 
 // Back to menu from results - show menu, hide game and results
