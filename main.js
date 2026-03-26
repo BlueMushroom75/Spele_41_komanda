@@ -1,15 +1,15 @@
-const canvas = document.getElementById("drawBoard");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("drawBoard")
+const ctx = canvas.getContext("2d")
 
-const shapeDropdown = document.getElementById("select-contour");
-const pointSlider = document.getElementById("select-points");
+// const shapeDropdown = document.getElementById("select-contour")
+const pointSlider = document.getElementById("select-points")
 
-const uiPlayerPoints = document.getElementById("score-display");
-const uiCurrentPlayer = document.getElementById("current_player");
-const uiIntersectPreview = document.getElementById("about_to_intersect");
+const uiPlayerPoints = document.getElementById("score-display")
+const uiCurrentPlayer = document.getElementById("current_player")
+const uiIntersectPreview = document.getElementById("about_to_intersect")
 
 const serchDepthInput = document.getElementById("maxDepthInput")
-const resetButton = document.getElementById("reset-button");
+const resetButton = document.getElementById("reset-button")
 
 const selectPlayer1 = document.getElementById("player-1-select")
 const selectPlayer2 = document.getElementById("player-2-select")
@@ -28,11 +28,11 @@ let mouseMargin = 20;
 
 let idCounter = 1;
 
-let pointCount = pointSlider.value; // Nomaina ar UI
+let pointCount = pointSlider.value // Nomaina ar UI
 
 
-const arena_x = 400;
-const arena_y = 400;
+const arena_x = 400
+const arena_y = 400
 
 
 const canvasW = canvas.width
@@ -41,7 +41,7 @@ const centerX = canvasW / 2
 const centerY = canvasH / 2
 
 
-let selectedShape = shapeDropdown.value // Nomaina ar UI
+let selectedShape = "circle" // shapeDropdown.value // Nomaina ar UI
 let maximumDepth = serchDepthInput.value // Nomaina ar UI
 
 
@@ -88,14 +88,14 @@ class GameNode {
 
 
 document.addEventListener("mousemove", (e) => {
-    const rect = canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect()
     mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top }
 
     let minX = mouseMargin * 2
     let minY = mouseMargin * 2
     let selPoint = undefined
     for (let i = 0; i < drawPoints.length; i++) {
-        const el = drawPoints[i];
+        const el = drawPoints[i]
         let pX = mousePos.x - el[0]
         let pY = mousePos.y - el[1]
         if (Math.hypot(pX ** 2 + pY ** 2) < Math.hypot(minX ** 2, minY ** 2) && i != fromDrawPoint) {//filledPoints[i] == 0 && i != fromDrawPoint){
@@ -137,11 +137,11 @@ let graph = {}
 
 
 
-shapeDropdown.addEventListener("input", (e) => {
-    selectedShape = e.target.value
-    console.log(selectedShape)
-    // initGame()
-})
+// shapeDropdown.addEventListener("input", (e) => {
+//     selectedShape = e.target.value
+//     console.log(selectedShape)
+//     // initGame()
+// })
 pointSlider.addEventListener("input", (e) => {
     pointCount = Number(e.target.value)
     console.log(pointCount)
@@ -149,7 +149,6 @@ pointSlider.addEventListener("input", (e) => {
 })
 serchDepthInput.addEventListener("input", (e) => {
     maximumDepth = e.target.value
-    console.log(maximumDepth)
     // initGame()
 })
 
@@ -191,7 +190,7 @@ function getDepthSize(depth) {
 }
 
 function updIntersectCount(count) {
-    uiIntersectPreview.textContent = count
+    uiIntersectPreview.textContent = count > 0 ? "Jā" : "Nē"
 }
 
 function addFunctionalLine(from, to) {
@@ -229,7 +228,7 @@ function getGamestate() {
     let state = 0n
     lines.forEach(line => {
         state |= (1n << BigInt(point2id(line[0], line[1])))
-    });
+    })
     console.log("Found gamestate: ", state.toString(2).padStart(pointCount * (pointCount - 1) / 2, '0'))
     return state
 }
@@ -294,7 +293,7 @@ function calculateMiniMax(gamestate) {
             return memCheck
         }
 
-        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1 : 1
+        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1*(maximumDepth-depth) : 0
 
         const nMask = mask | pow2[last_move_id]
         if (depth === 0 || nMask === full_mask) {
@@ -303,7 +302,7 @@ function calculateMiniMax(gamestate) {
         }
 
 
-        let empty = (~mask) & full_mask
+        let empty = (~nMask) & full_mask
         let move = 0
         let selfNode = new GameNode(acc_score, mask, last_move_id, childrenAtDepth[depth])
         while (empty) {
@@ -406,7 +405,7 @@ function calculateAlphaBeta(gamestate) {
         }
 
 
-        let empty = (~mask) & full_mask
+        let empty = (~nMask) & full_mask
         let move = 0
         let selfNode = new GameNode(acc_score, mask, last_move_id, childrenAtDepth[depth])
         while (empty) {
@@ -596,40 +595,40 @@ function initGame() {
 }
 
 function drawPoint(pos_x, pos_y, color) {
-    ctx.beginPath();
-    ctx.fillStyle = color;
-    ctx.arc(pos_x, pos_y, pointSize, 0, 2 * Math.PI);
-    ctx.fill();
+    ctx.beginPath()
+    ctx.fillStyle = color
+    ctx.arc(pos_x, pos_y, pointSize, 0, 2 * Math.PI)
+    ctx.fill()
 }
 function drawLine(fromX, fromY, toX, toY, col, dashed = []) {
-    ctx.beginPath();
-    ctx.strokeStyle = col;
-    ctx.lineWidth = lineWidth;
-    ctx.setLineDash(dashed);
-    ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.beginPath()
+    ctx.strokeStyle = col
+    ctx.lineWidth = lineWidth
+    ctx.setLineDash(dashed)
+    ctx.moveTo(fromX, fromY)
+    ctx.lineTo(toX, toY)
+    ctx.stroke()
+    ctx.setLineDash([])
 }
 function drawHighlight(x, y) {
-    ctx.beginPath();
-    ctx.strokeStyle = COLOR_SELECTED;
-    ctx.setLineDash([10, 10]);
-    ctx.lineWidth = lineWidth;
-    ctx.arc(x, y, selectPointSize, 0, 2 * Math.PI);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.beginPath()
+    ctx.strokeStyle = COLOR_SELECTED
+    ctx.setLineDash([10, 10])
+    ctx.lineWidth = lineWidth
+    ctx.arc(x, y, selectPointSize, 0, 2 * Math.PI)
+    ctx.stroke()
+    ctx.setLineDash([])
 }
 function drawFrom(x, y) {
-    ctx.beginPath();
-    ctx.strokeStyle = COLOR_FRIEDNLY;
-    ctx.lineWidth = lineWidth;
-    ctx.arc(x, y, selectPointSize, 0, 2 * Math.PI);
-    ctx.stroke();
+    ctx.beginPath()
+    ctx.strokeStyle = COLOR_FRIEDNLY
+    ctx.lineWidth = lineWidth
+    ctx.arc(x, y, selectPointSize, 0, 2 * Math.PI)
+    ctx.stroke()
 }
 
 function drawLoop() {
-    ctx.clearRect(0, 0, canvasW, canvasH);
+    ctx.clearRect(0, 0, canvasW, canvasH)
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const from = drawPoints[line[0]]
@@ -699,7 +698,7 @@ function showResults() {
         const pType = players[i]
         scoresHTML += `
             <div class="score-entry">
-                <span class="player-name">Player ${i + 1} (${pType})</span>
+                <span class="player-name">Spēlētājs ${i + 1} (${pType})</span>
                 <span class="score-value">${playerScore[i]}</span>
             </div>
         `
@@ -755,9 +754,7 @@ function onNextTurn() {
 
 drawLoop()
 
-// ========== SCREEN MANAGEMENT ==========
-
-// Get UI elements
+// Harvija kods
 const menuScreen = document.getElementById("menu-screen")
 const gameScreen = document.getElementById("game-screen")
 const resultsScreen = document.getElementById("results-screen")
@@ -768,39 +765,37 @@ const menuFromGameButton = document.getElementById("menu-from-game-button")
 const pointsValueDisplay = document.getElementById("points-value")
 const closeResultsButton = document.getElementById("close-results-button")
 
-// Start game - transition from menu to game
 startButton.addEventListener("click", () => {
     menuScreen.classList.add("hidden")
     gameScreen.style.display = "block"
     initGame()
 })
 
-// Play again - keep game screen, hide results, reset game
 playAgainButton.addEventListener("click", () => {
     resultsScreen.classList.remove("show")
     initGame()
 })
 
-// Close results screen
 closeResultsButton.addEventListener("click", () => {
     resultsScreen.classList.remove("show")
 })
 
-// Back to menu from results - show menu, hide game and results
 menuButton.addEventListener("click", () => {
     menuScreen.classList.remove("hidden")
     gameScreen.style.display = "none"
     resultsScreen.classList.remove("show")
 })
 
-// Back to menu from game - show menu, hide game and results
 menuFromGameButton.addEventListener("click", () => {
     menuScreen.classList.remove("hidden")
     gameScreen.style.display = "none"
     resultsScreen.classList.remove("show")
 })
 
-// Update points display when slider changes
+
 pointSlider.addEventListener("input", (e) => {
     pointsValueDisplay.textContent = e.target.value
 })
+
+
+pointsValueDisplay.textContent = pointSlider.value
