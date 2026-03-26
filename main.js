@@ -293,7 +293,7 @@ function calculateMiniMax(gamestate) {
             return memCheck
         }
 
-        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1*(maximumDepth-depth) : 0
+        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1*depth : 0
 
         const nMask = mask | pow2[last_move_id]
         if (depth === 0 || nMask === full_mask) {
@@ -396,7 +396,7 @@ function calculateAlphaBeta(gamestate) {
             return memCheck
         }
 
-        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1*(maximumDepth-depth) : 0
+        let collision_score = ((collisionTable[last_move_id] & mask) !== 0n) ? -1*depth : 0
 
         const nMask = mask | pow2[last_move_id]
         if (depth === 0 || nMask === full_mask) {
