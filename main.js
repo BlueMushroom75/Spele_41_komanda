@@ -680,7 +680,7 @@ function hasValidMoves() {
 function showResults() {
     if(playerScore[0] != playerScore[1]){
 
-        let winnerIndex = playerScore[0] > playerScore[1] ? 0 : 1
+        let winnerIndex = playerScore[0] > playerScore[1] ? 1 : 0
         document.getElementById("winner-display").textContent = `Spēlētājs ${winnerIndex + 1} (${players[winnerIndex]}) Uzvar!`
     }
     else {
