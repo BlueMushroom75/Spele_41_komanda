@@ -357,11 +357,13 @@ function calculateMiniMax(gamestate) {
         return selfNode
     }
     console.log(`Starting minimax with depth: ${maximumDepth}`)
+    let sTime = performance.now()
     let result = minimax_calc(gamestate)
-    console.log(total_calls, total_colls)
     console.log(result)
-    // console.log(gameTree)
-    console.log(`Move found: ${result.bestMove}`)
+    console.log(`Minimax move found: ${result.bestMove}`)
+    console.log(`Evaluated ${total_calls} discrete states with ${total_colls} repetitions`)
+    let timeTaken = (Math.round((performance.now()-sTime))/1000).toFixed(3)
+    console.log(`In ${timeTaken}s`)
     return pow2[result.bestMove]
 }
 
@@ -471,12 +473,14 @@ function calculateAlphaBeta(gamestate) {
         selfNode.setBestScore(best_score, best_move)
         return selfNode
     }
-    console.log(`Starting minimax with depth: ${maximumDepth}`)
+    console.log(`Starting alphabeta with depth: ${maximumDepth}`)
+    let sTime = performance.now()
     let result = alphabeta_calc(gamestate)
-    console.log(total_calls, total_colls)
     console.log(result)
-    // console.log(gameTree)
-    console.log(`Move found: ${result.bestMove}`)
+    console.log(`Alphabeta move found: ${result.bestMove}`)
+    console.log(`Evaluated ${total_calls} discrete states with ${total_colls} repetitions`)
+    let timeTaken = (Math.round((performance.now()-sTime))/1000).toFixed(3)
+    console.log(`In ${timeTaken}s`)
     return pow2[result.bestMove]
 }
 
