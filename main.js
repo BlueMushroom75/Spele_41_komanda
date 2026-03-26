@@ -678,20 +678,15 @@ function hasValidMoves() {
 }
 
 function showResults() {
-    let winnerIndex = 0
-    let minScore = playerScore[0]
+    if(playerScore[0] != playerScore[1]){
 
-    for (let i = 1; i < playerScore.length; i++) {
-        if (playerScore[i] < minScore) {
-            minScore = playerScore[i]
-            winnerIndex = i
-        }
+        let winnerIndex = playerScore[0] > playerScore[1] ? 0 : 1
+        document.getElementById("winner-display").textContent = `Spēlētājs ${winnerIndex + 1} (${players[winnerIndex]}) Uzvar!`
     }
-
-    const playerType = players[winnerIndex]
-    const playerNumber = winnerIndex + 1
-
-    document.getElementById("winner-display").textContent = `Player ${playerNumber} (${playerType}) Wins!`
+    else {
+        document.getElementById("winner-display").textContent = `Neizšķirts!`
+    }
+    
 
     let scoresHTML = ''
     for (let i = 0; i < playerCount; i++) {
