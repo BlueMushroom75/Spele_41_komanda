@@ -171,7 +171,7 @@ function line2id(line) {
 }
 
 function updScore() {
-    let msg = "Spēlētāju punkti: \n"
+    let msg = ""
     for (let i = 0; i < playerCount; i++) {
         msg += `${i + 1}. ${players[i]}: ${playerScore[i]}\n`
 
